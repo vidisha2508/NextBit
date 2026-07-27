@@ -1,6 +1,5 @@
 # NextBit
 
-> Walk through the next bit of your project.
 
 NextBit is an AI-powered software architecture visualizer that transforms project structures into an interactive city.
 
