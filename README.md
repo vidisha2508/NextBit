@@ -50,3 +50,37 @@ You walk through it.
 - Anyone who learns visually(like me myself)
 
 ---
+
+## Features (Planned)
+
+- AI-generated project architecture
+- Interactive 3D city visualization
+- Camera navigation through districts
+- Clickable buildings with module descriptions
+- Support for custom architecture input
+- Beautiful and immersive UI
+
+---
+
+## Tech Stack
+
+Frontend
+- React
+- Three.js
+- Tailwind CSS
+
+Backend
+- Node.js
+- Express.js
+
+Database
+- PostgreSQL
+
+AI
+- LLM-powered architecture generation
+
+Deployment
+- Vercel
+- Render
+
+---
