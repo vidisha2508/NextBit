@@ -84,3 +84,35 @@ Deployment
 - Render
 
 ---
+
+## Roadmap
+
+### Phase 1
+- Landing Page
+- Prompt Input
+- Static City Prototype
+
+### Phase 2
+- AI Architecture Generation
+- Dynamic City Creation
+
+### Phase 3
+- Camera Navigation
+- Building Interactions
+- Deployment
+
+---
+### Preview 
+
+- Coming Ssoon
+---
+## Vision
+
+Software architecture shouldn't be read.
+
+It should be explored.
+### Walk through your next bit with NextBit
+
+---
+
+Made with ❤️ by Vidisha Jain
