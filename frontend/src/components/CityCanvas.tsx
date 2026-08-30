@@ -1,13 +1,13 @@
 import React from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Grid, Environment } from '@react-three/drei';
+import { OrbitControls, Grid } from '@react-three/drei';
 import { ComputedLayout } from '../types/architecture';
 import { DistrictZone } from './DistrictZone';
 import { BuildingMesh } from './BuildingMesh';
 import { RelationshipLine } from './RelationshipLine';
 
 interface CityCanvasProps {
-  layout: ComputedLayout;
+  layout: ComputedLayout | null;
   selectedBuildingId: string | null;
   onSelectBuilding: (buildingId: string | null) => void;
 }
@@ -54,36 +54,41 @@ export const CityCanvas: React.FC<CityCanvasProps> = ({
           fadeStrength={1}
         />
 
-        {/* District Zones */}
-        {layout.districts.map((dLayout) => (
-          <DistrictZone key={dLayout.district.id} layout={dLayout} />
-        ))}
+        {/* Render Layout if present */}
+        {layout && (
+          <>
+            {/* District Zones */}
+            {layout.districts.map((dLayout) => (
+              <DistrictZone key={dLayout.district.id} layout={dLayout} />
+            ))}
 
-        {/* Buildings */}
-        {Array.from(layout.buildingsMap.values()).map((bLayout) => (
-          <BuildingMesh
-            key={bLayout.building.id}
-            layout={bLayout}
-            isSelected={selectedBuildingId === bLayout.building.id}
-            onSelect={(id) => onSelectBuilding(id)}
-          />
-        ))}
+            {/* Buildings */}
+            {Array.from(layout.buildingsMap.values()).map((bLayout) => (
+              <BuildingMesh
+                key={bLayout.building.id}
+                layout={bLayout}
+                isSelected={selectedBuildingId === bLayout.building.id}
+                onSelect={(id) => onSelectBuilding(id)}
+              />
+            ))}
 
-        {/* Relationships */}
-        {layout.relationships.map((rLayout) => {
-          const isConnectedToSelection =
-            selectedBuildingId !== null &&
-            (rLayout.relationship.source === selectedBuildingId ||
-              rLayout.relationship.target === selectedBuildingId);
+            {/* Relationships */}
+            {layout.relationships.map((rLayout) => {
+              const isConnectedToSelection =
+                selectedBuildingId !== null &&
+                (rLayout.relationship.source === selectedBuildingId ||
+                  rLayout.relationship.target === selectedBuildingId);
 
-          return (
-            <RelationshipLine
-              key={rLayout.relationship.id}
-              layout={rLayout}
-              isHighlighted={isConnectedToSelection}
-            />
-          );
-        })}
+              return (
+                <RelationshipLine
+                  key={rLayout.relationship.id}
+                  layout={rLayout}
+                  isHighlighted={isConnectedToSelection}
+                />
+              );
+            })}
+          </>
+        )}
 
         {/* Camera Control */}
         <OrbitControls

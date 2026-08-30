@@ -1,0 +1,142 @@
+{
+  "version": "1.0.0",
+  "projectName": "Netflix Clone Architecture",
+  "description": "Scalable video streaming platform with user management, catalog search, recommendations, and video delivery.",
+  "districts": [
+    {
+      "id": "district-client",
+      "name": "Client App Layer",
+      "description": "User interface applications for web and mobile devices",
+      "type": "frontend",
+      "buildings": [
+        {
+          "id": "comp-web-app",
+          "name": "Web Client App",
+          "type": "ui_component",
+          "description": "React single page application for video playback and catalog browsing.",
+          "complexity": 4,
+          "technologies": ["React", "TypeScript", "Tailwind CSS", "HLS.js"],
+          "responsibilities": [
+            "User UI rendering",
+            "HLS video streaming playback",
+            "Client side routing & state"
+          ],
+          "floors": [
+            {
+              "id": "floor-player",
+              "name": "Video Player Module",
+              "description": "Controls video playback buffer and quality levels",
+              "rooms": [
+                {
+                  "id": "room-hls-adapter",
+                  "name": "HLS Controller",
+                  "files": [
+                    { "id": "file-1", "path": "src/player/HlsPlayer.tsx", "language": "typescript" }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "district-backend",
+      "name": "Backend Microservices",
+      "description": "API Gateway, Auth, and Video Processing services",
+      "type": "backend",
+      "buildings": [
+        {
+          "id": "comp-api-gateway",
+          "name": "API Gateway",
+          "type": "api_gateway",
+          "description": "Entry point routing traffic to downstream microservices.",
+          "complexity": 5,
+          "technologies": ["Node.js", "Express", "HttpProxy"],
+          "responsibilities": ["Authentication verification", "Rate limiting", "Request routing"]
+        },
+        {
+          "id": "comp-auth-service",
+          "name": "User Auth Service",
+          "type": "auth_service",
+          "description": "Manages user registration, login, and JWT tokens.",
+          "complexity": 3,
+          "technologies": ["Node.js", "JWT", "Bcrypt"],
+          "responsibilities": ["Token signing", "Password hashing", "Session management"]
+        },
+        {
+          "id": "comp-catalog-service",
+          "name": "Catalog Service",
+          "type": "microservice",
+          "description": "Serves movie catalogs, search queries, and recommendations.",
+          "complexity": 4,
+          "technologies": ["Node.js", "Express"],
+          "responsibilities": ["Fetch movie metadata", "Search indexing", "Recommendation filtering"]
+        }
+      ]
+    },
+    {
+      "id": "district-storage",
+      "name": "Data & Media Storage",
+      "description": "Persistent databases, caches, and CDN storage",
+      "type": "database",
+      "buildings": [
+        {
+          "id": "comp-user-db",
+          "name": "User Database",
+          "type": "database_node",
+          "description": "Stores user profiles, subscriptions, and viewing history.",
+          "complexity": 3,
+          "technologies": ["PostgreSQL"],
+          "responsibilities": ["User data storage", "Payment subscription records"]
+        },
+        {
+          "id": "comp-media-cdn",
+          "name": "Video CDN Storage",
+          "type": "cache_layer",
+          "description": "Distributed cloud storage for HLS video chunks.",
+          "complexity": 5,
+          "technologies": ["AWS S3", "CloudFront"],
+          "responsibilities": ["High speed video chunk delivery", "Multi-bitrate video caching"]
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "id": "rel-1",
+      "source": "comp-web-app",
+      "target": "comp-api-gateway",
+      "type": "calls_api",
+      "description": "Web client routes all HTTPS request traffic through API Gateway"
+    },
+    {
+      "id": "rel-2",
+      "source": "comp-api-gateway",
+      "target": "comp-auth-service",
+      "type": "authenticates_with",
+      "description": "Gateway validates authorization tokens with Auth Service"
+    },
+    {
+      "id": "rel-3",
+      "source": "comp-api-gateway",
+      "target": "comp-catalog-service",
+      "type": "calls_api",
+      "description": "Gateway proxies catalog & search requests to Catalog Service"
+    },
+    {
+      "id": "rel-4",
+      "source": "comp-auth-service",
+      "target": "comp-user-db",
+      "type": "reads_writes",
+      "description": "Auth service queries user credentials and session data"
+    },
+    {
+      "id": "rel-5",
+      "source": "comp-web-app",
+      "target": "comp-media-cdn",
+      "type": "subscribes_to",
+      "description": "Video player streams segment files directly from CDN"
+    }
+  ]
+}
