@@ -17,11 +17,13 @@ export const BuildingMesh: React.FC<BuildingMeshProps> = ({ layout, isSelected, 
   const height = dimensions.height;
   const depth = dimensions.depth;
 
-  // Render specific shape geometry
-  const renderGeometry = () => {
+  const numFloors = building.floors?.length || building.complexity || 3;
+
+  // Render voxel building structure
+  const renderBuildingBody = () => {
     switch (geometryShape) {
       case 'cylinder':
-        return <cylinderGeometry args={[width / 2, width / 2, height, 24]} />;
+        return <cylinderGeometry args={[width / 2, width / 2, height, 16]} />;
       case 'prism':
         return <cylinderGeometry args={[width / 1.8, width / 1.8, height, 4]} />;
       case 'pyramid':
@@ -32,13 +34,13 @@ export const BuildingMesh: React.FC<BuildingMeshProps> = ({ layout, isSelected, 
     }
   };
 
-  const meshColor = isSelected ? '#00F0FF' : hovered ? accentColor : color;
-  const emissiveColor = isSelected ? '#00F0FF' : hovered ? accentColor : '#000000';
-  const emissiveIntensity = isSelected ? 0.6 : hovered ? 0.4 : 0;
+  const meshColor = isSelected ? '#0284C7' : hovered ? accentColor : color;
+  const emissiveColor = isSelected ? '#38BDF8' : hovered ? accentColor : '#000000';
+  const emissiveIntensity = isSelected ? 0.35 : hovered ? 0.2 : 0;
 
   return (
     <group position={[position.x, position.y, position.z]}>
-      {/* Interactive Main Mesh */}
+      {/* Base Building Block */}
       <mesh
         castShadow
         receiveShadow
@@ -56,39 +58,65 @@ export const BuildingMesh: React.FC<BuildingMeshProps> = ({ layout, isSelected, 
           document.body.style.cursor = 'auto';
         }}
       >
-        {renderGeometry()}
+        {renderBuildingBody()}
         <meshStandardMaterial
           color={meshColor}
           emissive={emissiveColor}
           emissiveIntensity={emissiveIntensity}
-          roughness={0.3}
-          metalness={0.4}
+          roughness={0.4}
+          metalness={0.2}
         />
       </mesh>
+
+      {/* Roof Block Accent Trim */}
+      <mesh position={[0, height / 2 + 0.1, 0]} castShadow>
+        <boxGeometry args={[width * 0.95, 0.2, depth * 0.95]} />
+        <meshStandardMaterial color="#FFFFFF" roughness={0.5} />
+      </mesh>
+
+      {/* Glass Windows Lines (Decorative Architectural Voxel Details) */}
+      {[...Array(Math.min(numFloors, 5))].map((_, idx) => {
+        const winY = -height / 2 + 0.6 + idx * (height / (numFloors + 0.5));
+        return (
+          <group key={`win-${idx}`} position={[0, winY, 0]}>
+            <mesh position={[0, 0, depth / 2 + 0.01]}>
+              <planeGeometry args={[width * 0.75, 0.35]} />
+              <meshStandardMaterial color="#E0F2FE" transparent opacity={0.85} roughness={0.1} />
+            </mesh>
+            <mesh position={[0, 0, -depth / 2 - 0.01]} rotation={[0, Math.PI, 0]}>
+              <planeGeometry args={[width * 0.75, 0.35]} />
+              <meshStandardMaterial color="#E0F2FE" transparent opacity={0.85} roughness={0.1} />
+            </mesh>
+          </group>
+        );
+      })}
 
       {/* Selected / Hover Outline indicator */}
       {(isSelected || hovered) && (
         <lineSegments position={[0, 0, 0]}>
-          <edgesGeometry args={[new THREE.BoxGeometry(width + 0.1, height + 0.1, depth + 0.1)]} />
-          <lineBasicMaterial color={isSelected ? '#00F0FF' : accentColor} linewidth={2} />
+          <edgesGeometry args={[new THREE.BoxGeometry(width + 0.12, height + 0.12, depth + 0.12)]} />
+          <lineBasicMaterial color={isSelected ? '#0284C7' : '#F59E0B'} linewidth={3} />
         </lineSegments>
       )}
 
-      {/* Building Label Header */}
+      {/* Floating Building Label */}
       <Html
-        position={[0, height / 2 + 0.4, 0]}
+        position={[0, height / 2 + 0.7, 0]}
         center
-        distanceFactor={15}
+        distanceFactor={16}
         style={{ pointerEvents: 'none' }}
       >
-        <div className={`px-2 py-0.5 rounded text-xs font-mono whitespace-nowrap transition-all duration-200 border ${
+        <div className={`px-2.5 py-1 rounded-lg text-xs font-mono whitespace-nowrap transition-all duration-200 border shadow-md flex items-center gap-1.5 ${
           isSelected 
-            ? 'bg-cyan-950/90 text-cyan-300 border-cyan-400 shadow-lg shadow-cyan-500/30 scale-110 font-bold' 
+            ? 'bg-sky-600 text-white border-sky-300 font-bold scale-110 shadow-sky-500/40' 
             : hovered
-            ? 'bg-slate-900/90 text-white border-slate-400 shadow-md'
-            : 'bg-slate-950/75 text-slate-300 border-slate-700/60'
+            ? 'bg-slate-800 text-white border-slate-300'
+            : 'bg-white/95 text-slate-800 border-slate-300'
         }`}>
-          {building.name}
+          <span className="w-4 h-4 rounded bg-slate-100 text-slate-700 flex items-center justify-center text-[10px] font-bold border border-slate-300">
+            {numFloors}F
+          </span>
+          <span>{building.name}</span>
         </div>
       </Html>
     </group>
