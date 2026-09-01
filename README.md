@@ -60,40 +60,6 @@ NextBit follows a **Sunny Software Garden** design philosophy:
 
 ---
 
-## 🚀 Getting Started
-
-### Prerequisites
-- Node.js (v18+)
-- Gemini API Key
-
-### 1. Backend Setup
-```bash
-cd backend
-npm install
-```
-
-Create `.env` file in `backend/`:
-```env
-GEMINI_API_KEY=your_gemini_api_key_here
-PORT=5000
-```
-
-Start backend dev server:
-```bash
-npm run dev
-```
-
-### 2. Frontend Setup
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Open your browser at `http://localhost:5173`.
-
----
-
 ## 🗺️ Roadmap
 
 - [x] Phase 1: Interactive 3D City Prototype & Navigation
