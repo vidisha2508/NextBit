@@ -9,7 +9,7 @@ interface RelationshipLineProps {
 }
 
 export const RelationshipLine: React.FC<RelationshipLineProps> = ({ layout, isHighlighted }) => {
-  const { sourcePosition, targetPosition, color, relationship } = layout;
+  const { sourcePosition, targetPosition, color } = layout;
 
   const start = useMemo(() => new THREE.Vector3(sourcePosition.x, sourcePosition.y, sourcePosition.z), [sourcePosition]);
   const end = useMemo(() => new THREE.Vector3(targetPosition.x, targetPosition.y, targetPosition.z), [targetPosition]);
@@ -22,9 +22,9 @@ export const RelationshipLine: React.FC<RelationshipLineProps> = ({ layout, isHi
     return mid;
   }, [start, end]);
 
-  const lineColor = isHighlighted ? '#00F0FF' : color;
+  const lineColor = isHighlighted ? '#0284C7' : color;
   const lineWidth = isHighlighted ? 3 : 1.5;
-  const opacity = isHighlighted ? 1.0 : 0.6;
+  const opacity = isHighlighted ? 1.0 : 0.65;
 
   return (
     <group>
