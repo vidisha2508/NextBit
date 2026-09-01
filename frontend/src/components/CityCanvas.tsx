@@ -1,83 +1,113 @@
 import React from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Grid } from '@react-three/drei';
-import { ComputedLayout } from '../types/architecture';
+import { ComputedLayout, NavigationState } from '../types/architecture';
+import { GardenGround } from './GardenGround';
 import { DistrictZone } from './DistrictZone';
 import { BuildingMesh } from './BuildingMesh';
+import { BuildingInteriorView } from './BuildingInteriorView';
 import { RelationshipLine } from './RelationshipLine';
+import { CameraController } from './CameraController';
 
 interface CityCanvasProps {
   layout: ComputedLayout | null;
-  selectedBuildingId: string | null;
+  navigation: NavigationState;
   onSelectBuilding: (buildingId: string | null) => void;
+  onSelectFloor: (floorId: string | null) => void;
+  onSelectRoom: (roomId: string | null) => void;
 }
 
 export const CityCanvas: React.FC<CityCanvasProps> = ({
   layout,
-  selectedBuildingId,
+  navigation,
   onSelectBuilding,
+  onSelectFloor,
+  onSelectRoom,
 }) => {
+  const activeBuildingLayout = navigation.buildingId && layout
+    ? layout.buildingsMap.get(navigation.buildingId) || null
+    : null;
+
   return (
     <div className="w-full h-full relative">
       <Canvas
         shadows
-        camera={{ position: [0, 18, 25], fov: 45 }}
+        camera={{ position: [0, 22, 28], fov: 40 }}
         onPointerDown={(e) => {
-          // Deselect if clicking on empty space
-          if (e.target === e.currentTarget) {
+          // Deselect when clicking empty ground
+          if (e.target === e.currentTarget && navigation.level !== 'city') {
             onSelectBuilding(null);
           }
         }}
-        className="bg-[#0B0F19]"
+        className="bg-[#9BE0FF]"
       >
-        {/* Lights & Atmosphere */}
-        <ambientLight intensity={0.4} />
+        {/* Sunny Sky & Warm Daylight Atmosphere */}
+        <color attach="background" args={['#9BE0FF']} />
+        <ambientLight intensity={0.75} color="#F8FAFC" />
         <directionalLight
-          position={[20, 35, 20]}
-          intensity={1.2}
+          position={[30, 45, 20]}
+          intensity={1.5}
+          color="#FFFBEB"
           castShadow
           shadow-mapSize-width={2048}
           shadow-mapSize-height={2048}
+          shadow-camera-near={0.5}
+          shadow-camera-far={120}
+          shadow-camera-left={-40}
+          shadow-camera-right={40}
+          shadow-camera-top={40}
+          shadow-camera-bottom={-40}
         />
-        <directionalLight position={[-20, 15, -20]} intensity={0.3} color="#00F0FF" />
+        <directionalLight position={[-20, 20, -20]} intensity={0.4} color="#BAE6FD" />
 
-        {/* Global Ground Grid */}
-        <Grid
-          infiniteGrid
-          cellSize={1}
-          cellThickness={0.5}
-          cellColor="#1E293B"
-          sectionSize={5}
-          sectionThickness={1}
-          sectionColor="#334155"
-          fadeDistance={60}
-          fadeStrength={1}
-        />
+        {/* Camera Lerp Controller */}
+        <CameraController layout={layout} navigation={navigation} />
 
         {/* Render Layout if present */}
         {layout && (
           <>
-            {/* District Zones */}
+            {/* Garden Ground, Pathways, Voxel Trees & Flower Patches */}
+            <GardenGround districts={layout.districts} />
+
+            {/* District Base Zones */}
             {layout.districts.map((dLayout) => (
               <DistrictZone key={dLayout.district.id} layout={dLayout} />
             ))}
 
-            {/* Buildings */}
-            {Array.from(layout.buildingsMap.values()).map((bLayout) => (
-              <BuildingMesh
-                key={bLayout.building.id}
-                layout={bLayout}
-                isSelected={selectedBuildingId === bLayout.building.id}
-                onSelect={(id) => onSelectBuilding(id)}
-              />
-            ))}
+            {/* Render Buildings in City View or Building Interior when focused */}
+            {Array.from(layout.buildingsMap.values()).map((bLayout) => {
+              const isSelectedBuilding = navigation.buildingId === bLayout.building.id;
 
-            {/* Relationships */}
+              // If a building is selected and we are in building/floor/room view, render multi-floor interior
+              if (isSelectedBuilding && navigation.level !== 'city') {
+                return (
+                  <BuildingInteriorView
+                    key={bLayout.building.id}
+                    layout={bLayout}
+                    selectedFloorId={navigation.floorId}
+                    selectedRoomId={navigation.roomId}
+                    onSelectFloor={(fId) => onSelectFloor(fId)}
+                    onSelectRoom={(rId) => onSelectRoom(rId)}
+                  />
+                );
+              }
+
+              // Otherwise render the City View voxel building block
+              return (
+                <BuildingMesh
+                  key={bLayout.building.id}
+                  layout={bLayout}
+                  isSelected={isSelectedBuilding}
+                  onSelect={(bId) => onSelectBuilding(bId)}
+                />
+              );
+            })}
+
+            {/* Relationship Connections */}
             {layout.relationships.map((rLayout) => {
               const isConnectedToSelection =
-                selectedBuildingId !== null &&
-                (rLayout.relationship.source === selectedBuildingId ||
-                  rLayout.relationship.target === selectedBuildingId);
+                navigation.buildingId !== null &&
+                (rLayout.relationship.source === navigation.buildingId ||
+                  rLayout.relationship.target === navigation.buildingId);
 
               return (
                 <RelationshipLine
@@ -89,16 +119,6 @@ export const CityCanvas: React.FC<CityCanvasProps> = ({
             })}
           </>
         )}
-
-        {/* Camera Control */}
-        <OrbitControls
-          makeDefault
-          enableDamping
-          dampingFactor={0.05}
-          maxPolarAngle={Math.PI / 2 - 0.05} // Prevent camera going under grid
-          minDistance={5}
-          maxDistance={70}
-        />
       </Canvas>
     </div>
   );
