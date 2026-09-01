@@ -1,9 +1,11 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { createRequire } from 'module';
+import { generateArchitecture } from './services/gemini.service.js';
 
 const require = createRequire(import.meta.url);
-const mockArchitecture = require('./data/mockNetflixArchitecture.json');
+const mockNetflixArchitecture = require('./data/mockNetflixArchitecture.json');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -13,11 +15,19 @@ app.use(express.json());
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', service: 'NextBit API' });
+  res.json({ status: 'ok', service: 'NextBit API', geminiKeyConfigured: !!process.env.GEMINI_API_KEY });
 });
 
-// Architecture generation API endpoint (Backend Contract)
-app.post('/api/architecture/generate', (req, res) => {
+// Mock architecture endpoint preserved for development / testing data
+app.get('/api/architecture/mock', (req, res) => {
+  res.json({
+    architecture: mockNetflixArchitecture,
+    source: 'mock'
+  });
+});
+
+// Real Gemini-powered Architecture Generation API endpoint
+app.post('/api/architecture/generate', async (req, res) => {
   const { prompt } = req.body;
 
   // Validate prompt parameter
@@ -27,13 +37,31 @@ app.post('/api/architecture/generate', (req, res) => {
     });
   }
 
-  // Simulate slight network processing latency (300ms) for realistic UX flow
-  setTimeout(() => {
-    res.json({
-      architecture: mockArchitecture,
-      source: 'mock'
+  try {
+    const architecture = await generateArchitecture(prompt.trim());
+    return res.json({
+      architecture,
+      source: 'gemini'
     });
-  }, 300);
+  } catch (error) {
+    console.error('[Gemini Service Error]:', error.message);
+
+    if (error.code === 'MISSING_API_KEY') {
+      return res.status(500).json({
+        error: 'Server Configuration Error: GEMINI_API_KEY is not configured in backend environment.'
+      });
+    }
+
+    if (error.code === 'VALIDATION_ERROR') {
+      return res.status(500).json({
+        error: `Architecture Validation Error: ${error.message}`
+      });
+    }
+
+    return res.status(500).json({
+      error: error.message || 'Failed to generate architecture from Gemini.'
+    });
+  }
 });
 
 app.listen(PORT, () => {
