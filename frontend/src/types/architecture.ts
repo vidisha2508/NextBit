@@ -24,11 +24,16 @@ export interface FileItem {
   id: string;
   path: string;
   language?: string;
+  sizeBytes?: number;
 }
 
 export interface Room {
   id: string;
   name: string;
+  description?: string;
+  responsibility?: string;
+  technology?: string;
+  language?: string;
   files?: FileItem[];
 }
 
@@ -36,7 +41,7 @@ export interface Floor {
   id: string;
   name: string;
   description?: string;
-  rooms?: Room[];
+  rooms: Room[];
 }
 
 export interface Building {
@@ -70,16 +75,55 @@ export interface ArchitectureJSON {
   version: string;
   projectName: string;
   description: string;
+  summary?: string;
   districts: District[];
   relationships: Relationship[];
 }
 
-// 2. Visual Layout Data Contract (Calculated by Layout Engine)
+// 2. Navigation State Contract
+
+export type NavigationLevel = 'city' | 'building' | 'floor' | 'room';
+
+export interface NavigationState {
+  level: NavigationLevel;
+  districtId: string | null;
+  buildingId: string | null;
+  floorId: string | null;
+  roomId: string | null;
+}
+
+// 3. Visual Layout Data Contract (Calculated by Layout Engine)
 
 export interface Vector3D {
   x: number;
   y: number;
   z: number;
+}
+
+export interface RoomLayout {
+  room: Room;
+  floorId: string;
+  buildingId: string;
+  position: Vector3D; // Local or world position
+  dimensions: {
+    width: number;
+    height: number;
+    depth: number;
+  };
+  color: string;
+}
+
+export interface FloorLayout {
+  floor: Floor;
+  buildingId: string;
+  floorNumber: number;
+  position: Vector3D;
+  dimensions: {
+    width: number;
+    height: number;
+    depth: number;
+  };
+  rooms: RoomLayout[];
 }
 
 export interface BuildingLayout {
@@ -94,6 +138,7 @@ export interface BuildingLayout {
   geometryShape: 'box' | 'cylinder' | 'prism' | 'pyramid';
   color: string;
   accentColor: string;
+  floors: FloorLayout[];
 }
 
 export interface DistrictLayout {
@@ -109,8 +154,8 @@ export interface DistrictLayout {
 
 export interface RelationshipLayout {
   relationship: Relationship;
-  sourcePosition: Vector3D; // Top/center point of source building
-  targetPosition: Vector3D; // Top/center point of target building
+  sourcePosition: Vector3D;
+  targetPosition: Vector3D;
   color: string;
 }
 
