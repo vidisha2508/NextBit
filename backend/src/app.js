@@ -2,7 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { createRequire } from 'module';
-import { generateArchitecture } from './services/gemini.service.js';
+import { generateArchitecture } from './services/groq.service.js';
 
 const require = createRequire(import.meta.url);
 const mockNetflixArchitecture = require('./data/mockNetflixArchitecture.json');
@@ -15,7 +15,7 @@ app.use(express.json());
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', service: 'NextBit API', geminiKeyConfigured: !!process.env.GEMINI_API_KEY });
+  res.json({ status: 'ok', service: 'NextBit API', groqKeyConfigured: !!process.env.GROQ_API_KEY });
 });
 
 // Mock architecture endpoint preserved for development / testing data
@@ -26,7 +26,7 @@ app.get('/api/architecture/mock', (req, res) => {
   });
 });
 
-// Real Gemini-powered Architecture Generation API endpoint
+// Real Groq-powered Architecture Generation API endpoint
 app.post('/api/architecture/generate', async (req, res) => {
   const { prompt } = req.body;
 
@@ -41,14 +41,14 @@ app.post('/api/architecture/generate', async (req, res) => {
     const architecture = await generateArchitecture(prompt.trim());
     return res.json({
       architecture,
-      source: 'gemini'
+      source: 'groq'
     });
   } catch (error) {
-    console.error('[Gemini Service Error]:', error.message);
+    console.error('[Groq Service Error]:', error.message);
 
     if (error.code === 'MISSING_API_KEY') {
       return res.status(500).json({
-        error: 'Server Configuration Error: GEMINI_API_KEY is not configured in backend environment.'
+        error: 'Server Configuration Error: GROQ_API_KEY is not configured in backend environment.'
       });
     }
 
@@ -59,7 +59,7 @@ app.post('/api/architecture/generate', async (req, res) => {
     }
 
     return res.status(500).json({
-      error: error.message || 'Failed to generate architecture from Gemini.'
+      error: error.message || 'Failed to generate architecture from Groq.'
     });
   }
 });
